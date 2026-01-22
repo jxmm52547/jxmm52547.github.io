@@ -1,95 +1,289 @@
-<!DOCTYPE HTML>
-<html>
-
+<!DOCTYPE html>
+<html lang="zh-CN">
 <head>
-    <title>終末牽挂主页</title>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-    <link rel="stylesheet" href="css/main.css" />
-    <link rel="icon" href="img/icon.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件导航器</title>
     <style>
-        @font-face {
-            font-family: 'sjthjt';
-            src: url(./fonts/三极瞳画简体.ttf);
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .breadcrumb {
+            font-size: 14px;
+            color: #ecf0f1;
+        }
+
+        .breadcrumb a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .file-list {
+            list-style: none;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            transition: background 0.2s;
+        }
+
+        .file-item:hover {
+            background: #f8f9fa;
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .file-icon {
+            margin-right: 12px;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .file-name {
+            font-size: 15px;
+            color: #2c3e50;
+            text-decoration: none;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .file-name.folder {
+            color: #3498db;
+            font-weight: 500;
+        }
+
+        .file-name.folder:hover {
+            text-decoration: underline;
+        }
+
+        .copy-btn {
+            padding: 6px 16px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .copy-btn:hover {
+            background: #2980b9;
+        }
+
+        .copy-btn.copied {
+            background: #27ae60;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #7f8c8d;
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
         }
     </style>
-    <noscript><link rel="stylesheet" href="css/noscript.css" /></noscript>
 </head>
-
-<body class="is-preload" style="font-family: sjthjt;">
-    <!-- 音乐 -->
-    <audio id:="audio" src="music/mine.mp3" autoplay="autoplay" controls id="audio"></audio>
-    <!-- Wrapper -->
-    <div id="wrapper">
-
-        <!-- Header -->
-        <header id="header">
-            <div class="logo">
-                <span><img style="width: 100%;" src="img/title.png"></span>
-                <!-- <span class="icon fa-gem"></span> -->
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>文件导航器</h1>
+            <div class="breadcrumb" id="breadcrumb">
+                <a href="#" onclick="navigateTo(''); return false;">根目录</a>
             </div>
-            <div class="content">
-                <div class="inner">
-                    <h1>欢迎来到靖暄的終末牽挂主页</h1>
-                </div>
-            </div>
-            <nav>
-                <ul>
-                    <li><a href="#intro">介绍</a></li>
-                    <li><a href="#project">项目</a></li>
-                    <li><a href="#contact">联系</a></li>
-                </ul>
-            </nav>
-        </header>
-
-        <!-- Main -->
-        <div id="main">
-            <!-- Intro -->
-            <article id="intro">
-                <h2 class="major">介绍</h2>
-                <p>这是一个属于靖暄的終末牽挂主页, 仅此而已.</p>
-            </article>
-
-            <!-- Work -->
-            <article id="project">
-                <h2 class="major">项目</h2>
-                <ul class="icons">
-                    <li>
-                        <a target="_blank" href="https://github.com/jxmm52547/FPS-On-Minecraft" class="icon brands fa-github"><span class="label">Fps_With_Minecraft</span></a>
-                    </li>
-                    <li>
-                        <a target="_self" href="./projects/ftp" class="icon solid fa-folder"><span class="label">私有云盘</span></a>
-                    </li>
-                </ul>
-            </article>
-
-            <!-- Contact -->
-            <article id="contact">
-                <h2 class="major">联系</h2>
-                <ul class="icons">
-                    <li><a href="http://wpa.qq.com/msgrd?v=3&uin=1250838250&site=qq&menu=yes" target="_blank" class="icon brands fa-qq"><span class="label">QQ</span></a></li>
-                    <li><a href="https://qm.qq.com/cgi-bin/qm/qr?k=_IN9uQoEWimT4fpkp7OQNQNVm6ta8ILe&jump_from=webapi&authKey=Uf8iZiOG0KhE+F+LBq2a0Eu4AnF6tl2YPKM35UPVkjgDEZMW8NuyCWbR+LXDN8SW" target="_blank" class="icon brands fa-qq"><span class="label">QQ群</span></a></li>
-                    <li><a target="_blank" href="https://github.com/jxmm52547" class="icon brands fa-github"><span class="label">GitHub主页</span></a></li>
-                </ul>
-            </article>
         </div>
-
-        <!-- Footer -->
-        <footer id="footer">
-            <p class="copyright">&copy; <a href="https://beian.miit.gov.cn/">渝ICP备2024024062号</a>. 靖暄 All rights reserved.</p>
-            <a class="copyright" href="https://beian.mps.gov.cn/#/query/webSearch?code=50010602504656" rel="noreferrer" target="_blank"><img src="img/备案图标.png" ; style="width: 16px;">渝公网安备50010602504656</a>
-        </footer>
-
+        <div class="content">
+            <ul class="file-list" id="fileList"></ul>
+        </div>
     </div>
-    <!-- BG -->
-    <div id="bg"></div>
-    <!-- Scripts -->
-    <script src="js/jquery.min.js"></script>
-    <script src="js/browser.min.js"></script>
-    <script src="js/breakpoints.min.js"></script>
-    <script src="js/util.js"></script>
-    <script src="js/main.js"></script>
-    <script src="js/audio.js"></script>
-</body>
 
+    <script>
+        const baseUrl = window.location.origin;
+        let currentPath = '';
+
+        // 文件结构配置 - 请根据实际情况修改
+        const fileStructure = {
+            '': {
+                folders: ['img', 'docs', 'videos'],
+                files: ['index.html', 'README.md']
+            },
+            'img': {
+                folders: [],
+                files: ['photo1.jpg', 'photo2.jpg', 'photo3.png', 'logo.svg']
+            },
+            'docs': {
+                folders: ['pdf'],
+                files: ['document.txt', 'guide.md']
+            },
+            'docs/pdf': {
+                folders: [],
+                files: ['manual.pdf', 'report.pdf']
+            },
+            'videos': {
+                folders: [],
+                files: ['demo.mp4', 'tutorial.mp4']
+            }
+        };
+
+        function navigateTo(path) {
+            currentPath = path;
+            updateBreadcrumb();
+            renderFileList();
+        }
+
+        function updateBreadcrumb() {
+            const breadcrumb = document.getElementById('breadcrumb');
+            const parts = currentPath.split('/').filter(p => p);
+            
+            let html = '<a href="#" onclick="navigateTo(\'\'); return false;">根目录</a>';
+            let pathSoFar = '';
+            
+            parts.forEach((part, index) => {
+                pathSoFar += (pathSoFar ? '/' : '') + part;
+                const currentPathSoFar = pathSoFar;
+                html += ' / <a href="#" onclick="navigateTo(\'' + currentPathSoFar + '\'); return false;">' + part + '</a>';
+            });
+            
+            breadcrumb.innerHTML = html;
+        }
+
+        function renderFileList() {
+            const fileList = document.getElementById('fileList');
+            const data = fileStructure[currentPath];
+            
+            if (!data || (data.folders.length === 0 && data.files.length === 0)) {
+                fileList.innerHTML = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                        </svg>
+                        <p>此目录为空</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+
+            // 渲染文件夹
+            data.folders.forEach(folder => {
+                const folderPath = currentPath ? `${currentPath}/${folder}` : folder;
+                html += `
+                    <li class="file-item">
+                        <div class="file-info">
+                            <span class="file-icon">📁</span>
+                            <a href="#" class="file-name folder" onclick="navigateTo('${folderPath}'); return false;">${folder}</a>
+                        </div>
+                    </li>
+                `;
+            });
+
+            // 渲染文件
+            data.files.forEach(file => {
+                const filePath = currentPath ? `${currentPath}/${file}` : file;
+                const fullUrl = `${baseUrl}/${filePath}`;
+                const icon = getFileIcon(file);
+                
+                html += `
+                    <li class="file-item">
+                        <div class="file-info">
+                            <span class="file-icon">${icon}</span>
+                            <a href="${fullUrl}" class="file-name" target="_blank">${file}</a>
+                        </div>
+                        <button class="copy-btn" onclick="copyToClipboard('${fullUrl}', this)">复制地址</button>
+                    </li>
+                `;
+            });
+
+            fileList.innerHTML = html;
+        }
+
+        function getFileIcon(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            const iconMap = {
+                'jpg': '🖼️', 'jpeg': '🖼️', 'png': '🖼️', 'gif': '🖼️', 'svg': '🖼️',
+                'mp4': '🎬', 'avi': '🎬', 'mov': '🎬',
+                'pdf': '📄',
+                'txt': '📝', 'md': '📝',
+                'html': '🌐', 'css': '🎨', 'js': '⚙️'
+            };
+            return iconMap[ext] || '📄';
+        }
+
+        function copyToClipboard(text, button) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = button.textContent;
+                button.textContent = '已复制!';
+                button.classList.add('copied');
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                alert('复制失败,请手动复制: ' + text);
+            });
+        }
+
+        // 初始化
+        navigateTo('');
+    </script>
+</body>
 </html>
