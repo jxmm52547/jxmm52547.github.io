@@ -139,6 +139,170 @@
             margin-bottom: 16px;
             opacity: 0.5;
         }
+
+        .config-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 56px;
+            height: 56px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .config-btn:hover {
+            background: #2980b9;
+            transform: scale(1.1);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 20px;
+            background: #2c3e50;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 20px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .input-group textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .help-text {
+            font-size: 13px;
+            color: #7f8c8d;
+            margin-top: 6px;
+        }
+
+        .modal-footer {
+            padding: 20px;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .example {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre;
+            overflow-x: auto;
+        }
     </style>
 </head>
 <body>
@@ -151,6 +315,45 @@
         </div>
         <div class="content">
             <ul class="file-list" id="fileList"></ul>
+        </div>
+    </div>
+
+    <button class="config-btn" onclick="openModal()" title="快速配置">⚙️</button>
+
+    <div class="modal" id="configModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>快速配置文件列表</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label>当前路径 (可选，留空表示根目录)</label>
+                    <input type="text" id="currentPathInput" placeholder="例如: img 或 docs/pdf">
+                    <p class="help-text">如果是子目录，输入完整路径，如 img/photos</p>
+                </div>
+
+                <div class="input-group">
+                    <label>粘贴文件列表 (每行一个文件名)</label>
+                    <textarea id="fileListInput" placeholder="photo1.jpg
+photo2.jpg
+photo3.png
+subfolder/
+document.pdf"></textarea>
+                    <p class="help-text">文件夹名称以 / 结尾，例如: images/</p>
+                    
+                    <div class="example">示例格式:
+img/
+docs/
+photo1.jpg
+photo2.png
+README.md</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+                <button class="btn btn-primary" onclick="applyConfig()">应用配置</button>
+            </div>
         </div>
     </div>
 
@@ -281,6 +484,72 @@
                 alert('复制失败,请手动复制: ' + text);
             });
         }
+
+        function openModal() {
+            document.getElementById('configModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('configModal').classList.remove('active');
+        }
+
+        function applyConfig() {
+            const pathInput = document.getElementById('currentPathInput').value.trim();
+            const fileListInput = document.getElementById('fileListInput').value.trim();
+            
+            if (!fileListInput) {
+                alert('请输入文件列表！');
+                return;
+            }
+
+            const lines = fileListInput.split('\n').map(line => line.trim()).filter(line => line);
+            const folders = [];
+            const files = [];
+
+            lines.forEach(line => {
+                if (line.endsWith('/')) {
+                    folders.push(line.slice(0, -1));
+                } else {
+                    files.push(line);
+                }
+            });
+
+            fileStructure[pathInput] = { folders, files };
+
+            // 如果配置的是子目录，确保父目录路径存在
+            if (pathInput) {
+                const parts = pathInput.split('/');
+                let currentCheck = '';
+                
+                for (let i = 0; i < parts.length; i++) {
+                    const parentPath = parts.slice(0, i).join('/');
+                    const folderName = parts[i];
+                    
+                    if (!fileStructure[parentPath]) {
+                        fileStructure[parentPath] = { folders: [], files: [] };
+                    }
+                    
+                    if (!fileStructure[parentPath].folders.includes(folderName)) {
+                        fileStructure[parentPath].folders.push(folderName);
+                    }
+                }
+            }
+
+            closeModal();
+            navigateTo(pathInput);
+            
+            document.getElementById('currentPathInput').value = '';
+            document.getElementById('fileListInput').value = '';
+            
+            alert('配置已应用！');
+        }
+
+        // 点击模态框外部关闭
+        document.getElementById('configModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
 
         // 初始化
         navigateTo('');
