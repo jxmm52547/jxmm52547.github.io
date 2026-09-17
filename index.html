@@ -1,360 +1,45 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>文件导航器</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    :root{--primary:#2563eb;--primary-hover:#1d4ed8;--success:#16a34a;--text:#1f2937;--muted:#6b7280;--border:#e5e7eb;--bg:#f3f6fa}
-    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text);padding:24px}
-    button,input{font:inherit}
-    .container{max-width:1100px;margin:0 auto;background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:0 8px 30px rgba(15,23,42,.08);overflow:hidden}
-    .header{padding:24px 26px;background:linear-gradient(135deg,#1e293b,#334155);color:#fff}
-    .header h1{font-size:25px;font-weight:700;margin-bottom:8px}
-    .header-subtitle{font-size:13px;color:#cbd5e1}
-    .breadcrumb{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:18px;font-size:14px}
-    .breadcrumb button{border:0;background:rgba(255,255,255,.1);color:#e2e8f0;padding:6px 9px;border-radius:6px;cursor:pointer}
-    .breadcrumb button:hover{background:rgba(255,255,255,.18);color:#fff}
-    .breadcrumb .current{font-weight:600;color:#fff;background:rgba(255,255,255,.18)}
-    .breadcrumb .separator{color:#94a3b8}
-    .toolbar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:15px 20px;border-bottom:1px solid var(--border);background:#fafbfc}
-    .btn{border:1px solid transparent;border-radius:8px;padding:9px 14px;cursor:pointer;font-size:13px;font-weight:600;transition:.15s}
-    .btn:disabled{opacity:.5;cursor:not-allowed}
-    .btn-primary{background:var(--primary);color:#fff}.btn-primary:hover:not(:disabled){background:var(--primary-hover)}
-    .btn-secondary{background:#fff;border-color:#d9dee7;color:#374151}.btn-secondary:hover:not(:disabled){background:#f8fafc}
-    .btn-success{background:var(--success);color:#fff}.btn-success:hover:not(:disabled){background:#15803d}
-    .content{padding:0 20px 24px}
-    .status{display:flex;align-items:center;min-height:52px;padding:12px 4px;color:var(--muted);font-size:13px}
-    .status.error{color:#b91c1c}
-    .file-list{list-style:none;border:1px solid var(--border);border-radius:10px;overflow:hidden}
-    .file-item{display:flex;align-items:center;gap:14px;padding:13px 15px;border-bottom:1px solid #edf0f3;min-height:64px}
-    .file-item:last-child{border-bottom:0}.file-item:hover{background:#f8fafc}
-    .file-info{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
-    .file-icon{width:34px;text-align:center;font-size:20px;flex-shrink:0}
-    .file-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#1f2937;font-size:14px;font-weight:500}
-    .folder-link{border:0;background:none;color:#2563eb;cursor:pointer;text-align:left}.folder-link:hover{text-decoration:underline}
-    .file-meta{font-size:12px;color:#9ca3af;margin-left:8px;white-space:nowrap}
-    .actions{display:flex;gap:7px;flex-shrink:0}.actions .btn{padding:7px 11px;font-weight:500}
-    .empty-state{text-align:center;padding:60px 20px;color:#9ca3af}
-    .config-btn{position:fixed;right:28px;bottom:28px;width:52px;height:52px;border:0;border-radius:50%;background:#334155;color:#fff;font-size:21px;cursor:pointer;box-shadow:0 6px 18px rgba(15,23,42,.25);z-index:1000}.config-btn:hover{background:#1e293b}
-    .modal{display:none;position:fixed;inset:0;background:rgba(15,23,42,.58);z-index:2000;align-items:center;justify-content:center;padding:18px}.modal.active{display:flex}
-    .modal-content{background:#fff;border-radius:14px;width:100%;max-width:620px;max-height:90vh;overflow:auto;box-shadow:0 20px 50px rgba(15,23,42,.25)}
-    .modal-header{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border)}.modal-header h2{font-size:19px}.close-btn{border:0;background:none;color:#6b7280;font-size:27px;line-height:1;cursor:pointer}.close-btn:hover{color:#111827}
-    .modal-body{padding:22px}.modal-footer{display:flex;justify-content:flex-end;gap:9px;padding:15px 22px;background:#f8fafc;border-top:1px solid var(--border)}
-    .input-group{margin-bottom:20px}.input-group label{display:block;margin-bottom:8px;font-size:13px;font-weight:700;color:#374151}.input-group input{width:100%;padding:11px 12px;border:1px solid #d5dae3;border-radius:8px;outline:none}.input-group input:focus{border-color:#93c5fd;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
-    .help-text{font-size:12px;color:#9ca3af;margin-top:7px;line-height:1.5}
-    .upload-target{border:1px solid #dbe3ee;border-radius:10px;background:#f8fafc;padding:12px 14px}.upload-target-label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;margin-bottom:5px}.upload-target-path{font-size:14px;font-weight:600;color:#334155;word-break:break-all}
-    .drop-zone{border:2px dashed #cbd5e1;border-radius:12px;background:#fbfdff;padding:30px 20px;text-align:center;transition:.15s}.drop-zone.dragover{border-color:#60a5fa;background:#eff6ff}.drop-icon{font-size:35px;margin-bottom:8px}.drop-title{font-size:15px;font-weight:700;color:#334155}.drop-desc{font-size:12px;color:#94a3b8;margin:6px 0 15px}.file-picker{display:none}.selected-file{margin-top:12px;padding:9px 11px;border-radius:8px;background:#f1f5f9;color:#475569;font-size:13px;word-break:break-all;display:none}.selected-file.show{display:block}
-    .upload-progress{height:6px;border-radius:99px;background:#e5e7eb;overflow:hidden;margin-top:14px;display:none}.upload-progress.show{display:block}.upload-progress-bar{height:100%;width:0;background:#2563eb;transition:width .2s}
-    @media(max-width:700px){body{padding:8px}.header{padding:20px}.toolbar{padding:12px}.content{padding:0 10px 16px}.file-item{align-items:flex-start}.file-meta{display:none}.actions{flex-wrap:wrap;justify-content:flex-end}.actions .btn{padding:7px 9px}.config-btn{right:16px;bottom:16px}}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>文件导航器</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}:root{--primary:#2563eb;--text:#1f2937;--muted:#6b7280;--border:#e5e7eb;--bg:#f3f6fa}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text);padding:24px}button,input{font:inherit}.container{max-width:1100px;margin:auto;background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:0 8px 30px rgba(15,23,42,.08);overflow:hidden}.header{padding:24px 26px;background:linear-gradient(135deg,#1e293b,#334155);color:#fff}.header h1{font-size:25px;margin-bottom:8px}.header-subtitle{font-size:13px;color:#cbd5e1}.breadcrumb{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:18px}.breadcrumb button{border:0;background:rgba(255,255,255,.1);color:#e2e8f0;padding:6px 9px;border-radius:6px;cursor:pointer}.breadcrumb .current{font-weight:600;color:#fff;background:rgba(255,255,255,.18)}.separator{color:#94a3b8}.toolbar{display:flex;gap:9px;flex-wrap:wrap;padding:15px 20px;border-bottom:1px solid var(--border);background:#fafbfc}.btn{border:1px solid transparent;border-radius:8px;padding:9px 14px;cursor:pointer;font-size:13px;font-weight:600}.btn:disabled{opacity:.5;cursor:not-allowed}.btn-primary{background:var(--primary);color:#fff}.btn-secondary{background:#fff;border-color:#d9dee7;color:#374151}.btn-success{background:#16a34a;color:#fff}.content{padding:0 20px 24px}.status{display:flex;align-items:center;min-height:52px;padding:12px 4px;color:var(--muted);font-size:13px}.status.error{color:#b91c1c}.file-list{list-style:none;border:1px solid var(--border);border-radius:10px;overflow:hidden}.file-item{display:flex;align-items:center;gap:14px;padding:13px 15px;border-bottom:1px solid #edf0f3;min-height:64px}.file-item:last-child{border-bottom:0}.file-item:hover{background:#f8fafc}.file-info{display:flex;align-items:center;gap:12px;min-width:0;flex:1}.file-icon{width:34px;text-align:center;font-size:20px;flex-shrink:0}.file-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#1f2937;font-size:14px;font-weight:500}.folder-link{border:0;background:none;color:#2563eb;cursor:pointer;text-align:left}.image-link{border:0;background:none;color:#2563eb;cursor:pointer;text-align:left}.image-link:hover,.folder-link:hover{text-decoration:underline}.file-meta{font-size:12px;color:#9ca3af;margin-left:8px;white-space:nowrap}.actions{display:flex;gap:7px;flex-shrink:0}.actions .btn{padding:7px 11px;font-weight:500}.empty-state{text-align:center;padding:60px 20px;color:#9ca3af}.config-btn{position:fixed;right:28px;bottom:28px;width:52px;height:52px;border:0;border-radius:50%;background:#334155;color:#fff;font-size:21px;cursor:pointer;box-shadow:0 6px 18px rgba(15,23,42,.25);z-index:1000}.modal{display:none;position:fixed;inset:0;background:rgba(15,23,42,.58);z-index:2000;align-items:center;justify-content:center;padding:18px}.modal.active{display:flex}.modal-content{background:#fff;border-radius:14px;width:100%;max-width:620px;max-height:90vh;overflow:auto;box-shadow:0 20px 50px rgba(15,23,42,.25)}.modal-header{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border)}.modal-header h2{font-size:19px}.close-btn{border:0;background:none;color:#6b7280;font-size:27px;line-height:1;cursor:pointer}.modal-body{padding:22px}.modal-footer{display:flex;justify-content:flex-end;gap:9px;padding:15px 22px;background:#f8fafc;border-top:1px solid var(--border)}.input-group{margin-bottom:20px}.input-group label{display:block;margin-bottom:8px;font-size:13px;font-weight:700}.input-group input{width:100%;padding:11px 12px;border:1px solid #d5dae3;border-radius:8px}.help-text{font-size:12px;color:#9ca3af;margin-top:7px;line-height:1.5}.upload-target{border:1px solid #dbe3ee;border-radius:10px;background:#f8fafc;padding:12px 14px}.upload-target-label{font-size:11px;color:#9ca3af;margin-bottom:5px}.upload-target-path{font-size:14px;font-weight:600;word-break:break-all}.drop-zone{border:2px dashed #cbd5e1;border-radius:12px;background:#fbfdff;padding:30px 20px;text-align:center}.drop-zone.dragover{border-color:#60a5fa;background:#eff6ff}.drop-icon{font-size:35px;margin-bottom:8px}.drop-title{font-size:15px;font-weight:700}.drop-desc{font-size:12px;color:#94a3b8;margin:6px 0 15px}.file-picker{display:none}.selected-file{margin-top:12px;padding:9px 11px;border-radius:8px;background:#f1f5f9;color:#475569;font-size:13px;word-break:break-all;display:none}.selected-file.show{display:block}.upload-progress{height:6px;border-radius:99px;background:#e5e7eb;overflow:hidden;margin-top:14px;display:none}.upload-progress.show{display:block}.upload-progress-bar{height:100%;width:0;background:#2563eb}.preview-modal .modal-content{max-width:1000px;width:min(96vw,1000px);background:#111827;color:#fff;overflow:hidden}.preview-modal .modal-header{border-bottom:1px solid #374151;background:#111827}.preview-modal .modal-header h2{color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.preview-modal .close-btn{color:#cbd5e1}.preview-body{padding:18px;min-height:240px;display:flex;align-items:center;justify-content:center;background:#0b1220}.preview-image{display:block;max-width:100%;max-height:70vh;width:auto;height:auto;object-fit:contain;border-radius:6px}.preview-footer{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 18px;background:#111827}.preview-info{font-size:12px;color:#9ca3af;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.preview-actions{display:flex;gap:8px;flex-shrink:0}.preview-actions .btn{background:#fff;color:#111827}.preview-placeholder{color:#9ca3af;text-align:center;padding:60px 20px}@media(max-width:700px){body{padding:8px}.header{padding:20px}.toolbar{padding:12px}.content{padding:0 10px 16px}.file-item{align-items:flex-start}.file-meta{display:none}.actions{flex-wrap:wrap;justify-content:flex-end}.config-btn{right:16px;bottom:16px}.preview-body{padding:10px}.preview-image{max-height:65vh}.preview-footer{align-items:flex-start;flex-direction:column}}
+</style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>文件导航器</h1>
-      <div class="header-subtitle">浏览、下载和上传 GitHub 仓库中的文件</div>
-      <div class="breadcrumb" id="breadcrumb"></div>
-    </div>
-
-    <div class="toolbar">
-      <button class="btn btn-secondary" id="upBtn" type="button">&#x2B06;&#xFE0F; 上一级</button>
-      <button class="btn btn-secondary" id="refreshBtn" type="button">&#x1F504; 刷新</button>
-      <button class="btn btn-success" id="uploadToolbarBtn" type="button">&#x2B06;&#xFE0F; 上传文件</button>
-    </div>
-
-    <div class="content">
-      <div class="status" id="status">正在读取 GitHub 仓库...</div>
-      <ul class="file-list" id="fileList"></ul>
-    </div>
-  </div>
-
-  <button class="config-btn" id="configBtn" type="button" title="配置上传密钥">&#x2699;&#xFE0F;</button>
-
-  <div class="modal" id="configModal">
-    <div class="modal-content">
-      <div class="modal-header"><h2>上传配置</h2><button class="close-btn" data-close="configModal" type="button">&times;</button></div>
-      <div class="modal-body">
-        <div class="input-group">
-          <label>Cloudflare Worker</label>
-          <input type="text" value="https://jxmm52547-github-io.12508382508391.workers.dev" readonly>
-          <p class="help-text">上传接口已固定，不需要修改。</p>
-        </div>
-        <div class="input-group">
-          <label for="uploadKeyInput">上传密钥</label>
-          <input id="uploadKeyInput" type="password" placeholder="填写 Cloudflare Worker 的 UPLOAD_KEY" autocomplete="off">
-          <p class="help-text">密钥只保存在当前浏览器会话中，不会写入 GitHub 页面源码。</p>
-        </div>
-      </div>
-      <div class="modal-footer"><button class="btn btn-secondary" data-close="configModal" type="button">取消</button><button class="btn btn-primary" id="saveConfigBtn" type="button">保存配置</button></div>
-    </div>
-  </div>
-
-  <div class="modal" id="uploadModal">
-    <div class="modal-content">
-      <div class="modal-header"><h2>上传文件</h2><button class="close-btn" data-close="uploadModal" type="button">&times;</button></div>
-      <div class="modal-body">
-        <div class="input-group">
-          <label>上传到</label>
-          <div class="upload-target">
-            <div class="upload-target-label">当前目标目录</div>
-            <div class="upload-target-path" id="uploadTargetPath">/</div>
-          </div>
-          <p class="help-text">文件会直接上传到当前正在浏览的目录。</p>
-        </div>
-
-        <div class="drop-zone" id="dropZone">
-          <div class="drop-icon">&#x1F4C1;</div>
-          <div class="drop-title">选择要上传的文件</div>
-          <div class="drop-desc">支持点击选择或将文件拖到这里，单个文件最大 50 MB</div>
-          <input class="file-picker" id="fileInput" type="file">
-          <button class="btn btn-primary" id="chooseFileBtn" type="button">选择文件</button>
-          <div class="selected-file" id="selectedFile"></div>
-        </div>
-
-        <div class="upload-progress" id="uploadProgress"><div class="upload-progress-bar" id="uploadProgressBar"></div></div>
-        <div class="status" id="uploadStatus"></div>
-      </div>
-      <div class="modal-footer"><button class="btn btn-secondary" data-close="uploadModal" type="button">取消</button><button class="btn btn-success" id="uploadBtn" type="button">开始上传</button></div>
-    </div>
-  </div>
-
-  <script>
-    const OWNER = 'jxmm52547';
-    const REPO = 'jxmm52547.github.io';
-    const BRANCH = 'main';
-    const API_ROOT = `https://api.github.com/repos/${OWNER}/${REPO}/contents`;
-    const UPLOAD_API = 'https://jxmm52547-github-io.12508382508391.workers.dev';
-
-    let currentPath = '';
-    let uploadKey = sessionStorage.getItem('uploadKey') || '';
-    let selectedFile = null;
-
-    const $ = id => document.getElementById(id);
-    const encodePath = path => path.split('/').filter(Boolean).map(encodeURIComponent).join('/');
-    const pageUrl = path => `${window.location.origin}/${encodePath(path)}`;
-    const escapeHtml = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-
-    function pathParts(path) { return path.split('/').filter(Boolean); }
-
-    function updateBreadcrumb() {
-      const root = document.createElement('button');
-      root.type = 'button';
-      root.textContent = '根目录';
-      root.className = currentPath ? '' : 'current';
-      root.addEventListener('click', () => loadDirectory(''));
-
-      const fragment = document.createDocumentFragment();
-      fragment.appendChild(root);
-      let path = '';
-      pathParts(currentPath).forEach((part, index, parts) => {
-        const separator = document.createElement('span');
-        separator.className = 'separator';
-        separator.textContent = '/';
-        fragment.appendChild(separator);
-
-        path += (path ? '/' : '') + part;
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.textContent = part;
-        button.className = index === parts.length - 1 ? 'current' : '';
-        const target = path;
-        button.addEventListener('click', () => loadDirectory(target));
-        fragment.appendChild(button);
-      });
-      $('breadcrumb').replaceChildren(fragment);
-      $('upBtn').disabled = !currentPath;
-    }
-
-    async function loadDirectory(path = '') {
-      const normalized = String(path).replace(/^\/+|\/+$/g, '');
-      currentPath = normalized;
-      updateBreadcrumb();
-      $('status').textContent = '正在读取 GitHub 仓库...';
-      $('status').className = 'status';
-      $('fileList').innerHTML = '<li class="empty-state">正在加载...</li>';
-
-      try {
-        const url = `${API_ROOT}${currentPath ? '/' + encodePath(currentPath) : ''}?ref=${encodeURIComponent(BRANCH)}`;
-        const response = await fetch(url, {headers:{Accept:'application/vnd.github+json'}});
-        const data = await response.json().catch(() => null);
-        if (!response.ok) {
-          const detail = data && data.message ? `：${data.message}` : '';
-          throw new Error(`GitHub API ${response.status}${detail}`);
-        }
-        if (!Array.isArray(data)) throw new Error('该路径不是目录');
-        renderItems(data);
-        $('status').textContent = `${data.length} 个项目 · ${currentPath ? '/' + currentPath : '/'}`;
-      } catch (error) {
-        $('status').textContent = `读取失败：${error.message}`;
-        $('status').className = 'status error';
-        $('fileList').innerHTML = '<li class="empty-state">无法读取此目录。请点击“刷新”重试。</li>';
-      }
-    }
-
-    function renderItems(items) {
-      const folders = items.filter(x => x.type === 'dir').sort((a,b) => a.name.localeCompare(b.name,'zh-CN'));
-      const files = items.filter(x => x.type === 'file').sort((a,b) => a.name.localeCompare(b.name,'zh-CN'));
-      const fragment = document.createDocumentFragment();
-
-      if (!items.length) {
-        fragment.appendChild(Object.assign(document.createElement('li'), {className:'empty-state', textContent:'此目录为空'}));
-        $('fileList').replaceChildren(fragment);
-        return;
-      }
-
-      folders.forEach(item => {
-        const li = document.createElement('li');
-        li.className = 'file-item';
-        li.innerHTML = `<div class="file-info"><span class="file-icon">&#x1F4C1;</span><span class="file-name folder-link">${escapeHtml(item.name)}</span><span class="file-meta">目录</span></div>`;
-        li.querySelector('.folder-link').addEventListener('click', () => loadDirectory(item.path));
-        fragment.appendChild(li);
-      });
-
-      files.forEach(item => {
-        const li = document.createElement('li');
-        li.className = 'file-item';
-        const url = pageUrl(item.path);
-        li.innerHTML = `<div class="file-info"><span class="file-icon">${getFileIcon(item.name)}</span><a class="file-name" target="_blank" rel="noopener"></a><span class="file-meta">文件</span></div><div class="actions"><a class="btn btn-secondary download-link">下载</a><button class="btn btn-primary copy-link" type="button">复制地址</button></div>`;
-        const link = li.querySelector('.file-name');
-        link.href = url;
-        link.textContent = item.name;
-        li.querySelector('.download-link').href = url;
-        li.querySelector('.download-link').download = item.name;
-        li.querySelector('.copy-link').addEventListener('click', event => copyToClipboard(url, event.currentTarget));
-        fragment.appendChild(li);
-      });
-
-      $('fileList').replaceChildren(fragment);
-    }
-
-    function getFileIcon(filename) {
-      const ext = filename.includes('.') ? filename.split('.').pop().toLowerCase() : '';
-      const map = {
-        jpg:'\u{1F5BC}\uFE0F',jpeg:'\u{1F5BC}\uFE0F',png:'\u{1F5BC}\uFE0F',gif:'\u{1F5BC}\uFE0F',webp:'\u{1F5BC}\uFE0F',svg:'\u{1F5BC}\uFE0F',
-        mp4:'\u{1F3AC}',avi:'\u{1F3AC}',mov:'\u{1F3AC}',webm:'\u{1F3AC}',pdf:'\u{1F4C4}',txt:'\u{1F4DD}',md:'\u{1F4DD}',
-        html:'\u{1F310}',css:'\u{1F3A8}',js:'\u2699\uFE0F',json:'\u{1F527}',zip:'\u{1F4E6}',rar:'\u{1F4E6}','7z':'\u{1F4E6}'
-      };
-      return map[ext] || '\u{1F4C4}';
-    }
-
-    async function copyToClipboard(text, button) {
-      try {
-        if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(text);
-        else {
-          const area = document.createElement('textarea');
-          area.value = text; area.style.position = 'fixed'; area.style.opacity = '0';
-          document.body.appendChild(area); area.focus(); area.select(); document.execCommand('copy'); area.remove();
-        }
-        const old = button.textContent;
-        button.textContent = '已复制'; button.classList.add('btn-success');
-        setTimeout(() => {button.textContent = old;button.classList.remove('btn-success')}, 1600);
-      } catch { alert('复制失败，请手动复制：\n' + text); }
-    }
-
-    function goUp() {
-      if (!currentPath) return;
-      const parts = pathParts(currentPath);
-      parts.pop();
-      loadDirectory(parts.join('/'));
-    }
-
-    function openModal(id) { $(id).classList.add('active'); }
-    function closeModal(id) { $(id).classList.remove('active'); }
-
-    function openConfigModal() {
-      $('uploadKeyInput').value = uploadKey;
-      openModal('configModal');
-      setTimeout(() => $('uploadKeyInput').focus(), 50);
-    }
-
-    function saveConfig() {
-      uploadKey = $('uploadKeyInput').value.trim();
-      if (uploadKey) sessionStorage.setItem('uploadKey', uploadKey);
-      else sessionStorage.removeItem('uploadKey');
-      closeModal('configModal');
-      $('status').textContent = uploadKey ? '上传配置已保存。' : '上传密钥已清除。';
-    }
-
-    function openUploadModal() {
-      if (!uploadKey) { openConfigModal(); return; }
-      $('uploadTargetPath').textContent = currentPath ? '/' + currentPath : '/（根目录）';
-      $('uploadStatus').textContent = '';
-      $('uploadStatus').className = 'status';
-      $('uploadProgress').classList.remove('show');
-      $('uploadProgressBar').style.width = '0%';
-      selectedFile = null;
-      $('fileInput').value = '';
-      $('selectedFile').textContent = '';
-      $('selectedFile').classList.remove('show');
-      openModal('uploadModal');
-    }
-
-    function setSelectedFile(file) {
-      if (!file) return;
-      selectedFile = file;
-      $('selectedFile').textContent = `${file.name} · ${formatBytes(file.size)}`;
-      $('selectedFile').classList.add('show');
-    }
-
-    function formatBytes(bytes) {
-      if (bytes < 1024) return `${bytes} B`;
-      if (bytes < 1024*1024) return `${(bytes/1024).toFixed(1)} KB`;
-      if (bytes < 1024*1024*1024) return `${(bytes/1024/1024).toFixed(1)} MB`;
-      return `${(bytes/1024/1024/1024).toFixed(1)} GB`;
-    }
-
-    async function uploadFile() {
-      if (!selectedFile) { $('uploadStatus').textContent = '请先选择文件。'; $('uploadStatus').className='status error'; return; }
-      if (selectedFile.size > 50 * 1024 * 1024) { $('uploadStatus').textContent = '单个文件超过 50 MB，无法上传。'; $('uploadStatus').className='status error'; return; }
-
-      const targetPath = currentPath ? `${currentPath}/${selectedFile.name}` : selectedFile.name;
-      const form = new FormData();
-      form.append('file', selectedFile);
-      form.append('path', targetPath);
-      form.append('branch', BRANCH);
-
-      const button = $('uploadBtn');
-      button.disabled = true;
-      $('uploadStatus').textContent = '正在上传，请稍候...';
-      $('uploadStatus').className = 'status';
-      $('uploadProgress').classList.add('show');
-      $('uploadProgressBar').style.width = '25%';
-
-      try {
-        const response = await fetch(UPLOAD_API, {method:'POST',headers:{Authorization:`Bearer ${uploadKey}`},body:form});
-        $('uploadProgressBar').style.width = '85%';
-        const result = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(result.error || `上传失败（${response.status}）`);
-        $('uploadProgressBar').style.width = '100%';
-        $('uploadStatus').textContent = '上传成功，正在刷新目录...';
-        await new Promise(resolve => setTimeout(resolve, 500));
-        closeModal('uploadModal');
-        await loadDirectory(currentPath);
-      } catch (error) {
-        $('uploadStatus').textContent = '上传失败：' + error.message;
-        $('uploadStatus').className = 'status error';
-      } finally { button.disabled = false; }
-    }
-
-    $('upBtn').addEventListener('click', goUp);
-    $('refreshBtn').addEventListener('click', () => loadDirectory(currentPath));
-    $('uploadToolbarBtn').addEventListener('click', openUploadModal);
-    $('configBtn').addEventListener('click', openConfigModal);
-    $('saveConfigBtn').addEventListener('click', saveConfig);
-    $('chooseFileBtn').addEventListener('click', () => $('fileInput').click());
-    $('fileInput').addEventListener('change', event => setSelectedFile(event.target.files[0]));
-    $('uploadBtn').addEventListener('click', uploadFile);
-
-    $('dropZone').addEventListener('dragover', event => { event.preventDefault(); $('dropZone').classList.add('dragover'); });
-    $('dropZone').addEventListener('dragleave', () => $('dropZone').classList.remove('dragover'));
-    $('dropZone').addEventListener('drop', event => { event.preventDefault(); $('dropZone').classList.remove('dragover'); setSelectedFile(event.dataTransfer.files[0]); });
-
-    document.querySelectorAll('[data-close]').forEach(button => button.addEventListener('click', () => closeModal(button.dataset.close)));
-    document.querySelectorAll('.modal').forEach(modal => modal.addEventListener('click', event => { if (event.target === modal) modal.classList.remove('active'); }));
-
-    loadDirectory('');
-  </script>
+<div class="container">
+<div class="header"><h1>文件导航器</h1><div class="header-subtitle">浏览、预览、下载和上传 GitHub 仓库中的文件</div><div class="breadcrumb" id="breadcrumb"></div></div>
+<div class="toolbar"><button class="btn btn-secondary" id="upBtn" type="button">上一级</button><button class="btn btn-secondary" id="refreshBtn" type="button">刷新</button><button class="btn btn-success" id="uploadToolbarBtn" type="button">上传文件</button></div>
+<div class="content"><div class="status" id="status">正在读取 GitHub 仓库...</div><ul class="file-list" id="fileList"></ul></div>
+</div>
+<button class="config-btn" id="configBtn" type="button" title="配置上传密钥">&#x2699;&#xFE0F;</button>
+<div class="modal" id="configModal"><div class="modal-content"><div class="modal-header"><h2>上传配置</h2><button class="close-btn" data-close="configModal" type="button">&times;</button></div><div class="modal-body"><div class="input-group"><label>Cloudflare Worker</label><input type="text" value="https://jxmm52547-github-io.12508382508391.workers.dev" readonly><p class="help-text">上传接口已固定，不需要修改。</p></div><div class="input-group"><label for="uploadKeyInput">上传密钥</label><input id="uploadKeyInput" type="password" placeholder="填写 Cloudflare Worker 的 UPLOAD_KEY" autocomplete="off"><p class="help-text">密钥只保存在当前浏览器会话中。</p></div></div><div class="modal-footer"><button class="btn btn-secondary" data-close="configModal" type="button">取消</button><button class="btn btn-primary" id="saveConfigBtn" type="button">保存配置</button></div></div></div>
+<div class="modal" id="uploadModal"><div class="modal-content"><div class="modal-header"><h2>上传文件</h2><button class="close-btn" data-close="uploadModal" type="button">&times;</button></div><div class="modal-body"><div class="input-group"><label>上传到</label><div class="upload-target"><div class="upload-target-label">当前目标目录</div><div class="upload-target-path" id="uploadTargetPath">/</div></div><p class="help-text">文件会直接上传到当前正在浏览的目录。</p></div><div class="drop-zone" id="dropZone"><div class="drop-icon">&#x1F4C1;</div><div class="drop-title">选择要上传的文件</div><div class="drop-desc">支持点击选择或拖放，单个文件最大 50 MB</div><input class="file-picker" id="fileInput" type="file"><button class="btn btn-primary" id="chooseFileBtn" type="button">选择文件</button><div class="selected-file" id="selectedFile"></div></div><div class="upload-progress" id="uploadProgress"><div class="upload-progress-bar" id="uploadProgressBar"></div></div><div class="status" id="uploadStatus"></div></div><div class="modal-footer"><button class="btn btn-secondary" data-close="uploadModal" type="button">取消</button><button class="btn btn-success" id="uploadBtn" type="button">开始上传</button></div></div></div>
+<div class="modal preview-modal" id="previewModal"><div class="modal-content"><div class="modal-header"><h2 id="previewTitle">图片预览</h2><button class="close-btn" data-close="previewModal" type="button">&times;</button></div><div class="preview-body"><img class="preview-image" id="previewImage" alt="图片预览"></div><div class="preview-footer"><div class="preview-info" id="previewInfo"></div><div class="preview-actions"><a class="btn" id="previewOpenBtn" target="_blank" rel="noopener">新窗口打开</a><button class="btn" id="previewCopyBtn" type="button">复制地址</button><a class="btn" id="previewDownloadBtn" download>下载</a></div></div></div></div>
+<script>
+const OWNER='jxmm52547',REPO='jxmm52547.github.io',BRANCH='main';
+const API_ROOT=`https://api.github.com/repos/${OWNER}/${REPO}/contents`,UPLOAD_API='https://jxmm52547-github-io.12508382508391.workers.dev';
+let currentPath='',uploadKey=sessionStorage.getItem('uploadKey')||'',selectedFile=null;
+const $=id=>document.getElementById(id),encodePath=p=>p.split('/').filter(Boolean).map(encodeURIComponent).join('/');
+const pageUrl=p=>`${window.location.origin}/${encodePath(p)}`;
+const isImage=p=>/\.(avif|bmp|gif|jpe?g|png|svg|webp|ico|tiff?)$/i.test(p);
+function pathParts(p){return p.split('/').filter(Boolean)}
+function fileIcon(item){return item.type==='dir'?'&#x1F4C1;':isImage(item.name)?'&#x1F5BC;&#xFE0F;':'&#x1F4C4;'}
+function updateBreadcrumb(){const root=document.createElement('button');root.type='button';root.textContent='根目录';root.className=currentPath?'':'current';root.onclick=()=>loadDirectory('');const f=document.createDocumentFragment();f.append(root);let path='';pathParts(currentPath).forEach((part,i,parts)=>{const s=document.createElement('span');s.className='separator';s.textContent='/';f.append(s);path+=(path?'/':'')+part;const b=document.createElement('button');b.type='button';b.textContent=part;b.className=i===parts.length-1?'current':'';const target=path;b.onclick=()=>loadDirectory(target);f.append(b)});$('breadcrumb').replaceChildren(f);$('upBtn').disabled=!currentPath}
+async function loadDirectory(path=''){currentPath=String(path).replace(/^\/+|\/+$/g,'');updateBreadcrumb();$('status').textContent='正在读取 GitHub 仓库...';$('status').className='status';$('fileList').innerHTML='<li class="empty-state">正在加载...</li>';try{const url=`${API_ROOT}${currentPath?'/'+encodePath(currentPath):''}?ref=${encodeURIComponent(BRANCH)}`;const r=await fetch(url,{headers:{Accept:'application/vnd.github+json'}}),data=await r.json().catch(()=>null);if(!r.ok)throw new Error(`GitHub API ${r.status}${data?.message?'：'+data.message:''}`);if(!Array.isArray(data))throw new Error('该路径不是目录');renderItems(data);$('status').textContent=`${data.length} 个项目 · ${currentPath?'/'+currentPath:'/'}`}catch(e){$('status').textContent=`读取失败：${e.message}`;$('status').className='status error';$('fileList').innerHTML='<li class="empty-state">无法读取此目录。请点击“刷新”重试。</li>'}}
+function renderItems(items){const folders=items.filter(x=>x.type==='dir').sort((a,b)=>a.name.localeCompare(b.name,'zh-CN')),files=items.filter(x=>x.type==='file').sort((a,b)=>a.name.localeCompare(b.name,'zh-CN')),f=document.createDocumentFragment();if(!items.length){const li=document.createElement('li');li.className='empty-state';li.textContent='此目录为空';f.append(li);$('fileList').replaceChildren(f);return}folders.forEach(item=>f.append(makeItem(item)));files.forEach(item=>f.append(makeItem(item)));$('fileList').replaceChildren(f)}
+function makeItem(item){const li=document.createElement('li');li.className='file-item';const info=document.createElement('div');info.className='file-info';const icon=document.createElement('span');icon.className='file-icon';icon.innerHTML=fileIcon(item);info.append(icon);const name=document.createElement('button');name.type='button';name.className=item.type==='dir'?'folder-link':isImage(item.name)?'image-link':'file-name';name.textContent=item.name;if(item.type==='dir')name.onclick=()=>loadDirectory(item.path);else if(isImage(item.name))name.onclick=()=>openPreview(item);else name.onclick=()=>window.open(pageUrl(item.path),'_blank','noopener');const meta=document.createElement('span');meta.className='file-meta';meta.textContent=item.type==='dir'?'目录':formatSize(item.size);info.append(name,meta);li.append(info);const actions=document.createElement('div');actions.className='actions';if(item.type==='file'&&isImage(item.name)){const p=document.createElement('button');p.className='btn btn-primary';p.type='button';p.textContent='预览';p.onclick=()=>openPreview(item);actions.append(p)}if(item.type==='file'){const d=document.createElement('a');d.className='btn btn-secondary';d.textContent='下载';d.href=item.download_url||pageUrl(item.path);d.target='_blank';d.rel='noopener';d.download=item.name;actions.append(d);const c=document.createElement('button');c.className='btn btn-secondary';c.type='button';c.textContent='复制地址';c.onclick=()=>copyText(item.download_url||pageUrl(item.path));actions.append(c)}li.append(actions);return li}
+function formatSize(n){if(!Number.isFinite(n))return'';if(n<1024)return`${n} B`;if(n<1048576)return`${(n/1024).toFixed(1)} KB`;return`${(n/1048576).toFixed(1)} MB`}
+async function copyText(text){try{await navigator.clipboard.writeText(text);alert('地址已复制');}catch{window.prompt('请手动复制地址：',text)}}
+function openPreview(item){const url=item.download_url||`https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${encodePath(item.path)}`;$('previewTitle').textContent=item.name;$('previewInfo').textContent=`${item.path} · ${formatSize(item.size)}`;$('previewImage').src=url;$('previewImage').alt=item.name;$('previewOpenBtn').href=url;$('previewDownloadBtn').href=url;$('previewDownloadBtn').download=item.name;$('previewCopyBtn').onclick=()=>copyText(url);$('previewImage').onerror=()=>{$('previewInfo').textContent='图片加载失败，可能是文件尚未发布或地址不可访问。'};$('previewModal').classList.add('active')}
+function closeModal(id){$(id).classList.remove('active')}
+function openUpload(){if(!uploadKey){$('configModal').classList.add('active');return}$('uploadTargetPath').textContent=currentPath?'/'+currentPath:'/（根目录）';$('uploadStatus').textContent='';$('uploadModal').classList.add('active')}
+function selectFile(file){selectedFile=file;if(!file){$('selectedFile').classList.remove('show');return}$('selectedFile').textContent=`${file.name} · ${formatSize(file.size)}`;$('selectedFile').classList.add('show')}
+async function upload(){if(!selectedFile)return alert('请先选择文件');if(selectedFile.size>50*1024*1024)return alert('文件超过 50 MB 限制');if(!uploadKey){closeModal('uploadModal');$('configModal').classList.add('active');return}const path=currentPath?`${currentPath}/${selectedFile.name}`:selectedFile.name,fd=new FormData();fd.append('file',selectedFile);fd.append('path',path);fd.append('branch',BRANCH);$('uploadBtn').disabled=true;$('uploadProgress').classList.add('show');$('uploadProgressBar').style.width='10%';$('uploadStatus').textContent='正在上传...';try{const r=await fetch(UPLOAD_API,{method:'POST',headers:{Authorization:`Bearer ${uploadKey}`},body:fd});$('uploadProgressBar').style.width='90%';const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||`HTTP ${r.status}`);$('uploadProgressBar').style.width='100%';$('uploadStatus').textContent='上传成功，正在刷新目录...';setTimeout(()=>{closeModal('uploadModal');$('uploadProgress').classList.remove('show');$('uploadProgressBar').style.width='0';selectFile(null);$('fileInput').value='';$('uploadBtn').disabled=false;loadDirectory(currentPath)},500)}catch(e){$('uploadStatus').textContent=`上传失败：${e.message}`;$('uploadBtn').disabled=false}}
+$('upBtn').onclick=()=>{const p=pathParts(currentPath);p.pop();loadDirectory(p.join('/'))};$('refreshBtn').onclick=()=>loadDirectory(currentPath);$('uploadToolbarBtn').onclick=openUpload;$('configBtn').onclick=()=>{$('uploadKeyInput').value=uploadKey;$('configModal').classList.add('active')};$('saveConfigBtn').onclick=()=>{uploadKey=$('uploadKeyInput').value.trim();if(uploadKey)sessionStorage.setItem('uploadKey',uploadKey);else sessionStorage.removeItem('uploadKey');closeModal('configModal')};$('chooseFileBtn').onclick=()=>$('fileInput').click();$('fileInput').onchange=e=>selectFile(e.target.files[0]);$('uploadBtn').onclick=upload;
+$('dropZone').ondragover=e=>{e.preventDefault();$('dropZone').classList.add('dragover')};$('dropZone').ondragleave=()=>$('dropZone').classList.remove('dragover');$('dropZone').ondrop=e=>{e.preventDefault();$('dropZone').classList.remove('dragover');selectFile(e.dataTransfer.files[0])};document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closeModal(b.dataset.close));document.querySelectorAll('.modal').forEach(m=>m.onclick=e=>{if(e.target===m)closeModal(m.id)});document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal.active').forEach(m=>closeModal(m.id))});$('previewImage').ondblclick=()=>window.open($('previewImage').src,'_blank','noopener');loadDirectory('');
+</script>
 </body>
 </html>
