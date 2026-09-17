@@ -40,17 +40,17 @@
       <div class="breadcrumb" id="breadcrumb"></div>
     </div>
     <div class="toolbar">
-      <button class="btn btn-secondary" id="upBtn" onclick="goUp()">⬆️ 上一级</button>
-      <button class="btn btn-primary" onclick="loadDirectory(currentPath)">🔄 刷新</button>
-      <button class="btn btn-success" onclick="openUploadModal()">⬆️ 上传文件</button>
+      <button class="btn btn-secondary" id="upBtn" onclick="goUp()">&#x2B06;&#xFE0F; 上一级</button>
+      <button class="btn btn-primary" onclick="loadDirectory(currentPath)">&#x1F504; 刷新</button>
+      <button class="btn btn-success" onclick="openUploadModal()">&#x2B06;&#xFE0F; 上传文件</button>
     </div>
     <div class="content">
-      <div class="status" id="status">正在读取 GitHub 仓库……</div>
+      <div class="status" id="status">正在读取 GitHub 仓库...</div>
       <ul class="file-list" id="fileList"></ul>
     </div>
   </div>
 
-  <button class="config-btn" onclick="openConfigModal()" title="配置上传密钥">⚙️</button>
+  <button class="config-btn" onclick="openConfigModal()" title="配置上传密钥">&#x2699;&#xFE0F;</button>
 
   <div class="modal" id="configModal">
     <div class="modal-content">
@@ -122,7 +122,7 @@
     async function loadDirectory(path = '') {
       currentPath = path.replace(/^\/+|\/+$/g, '');
       updateBreadcrumb();
-      $('status').textContent = '正在读取 GitHub 仓库……';
+      $('status').textContent = '正在读取 GitHub 仓库...';
       $('status').className = 'status';
       $('fileList').innerHTML = '';
       try {
@@ -149,7 +149,7 @@
       }
       let html = '';
       folders.forEach(item => {
-        html += `<li class="file-item"><div class="file-info"><span class="file-icon">📁</span><a href="#" class="file-name folder" onclick="navigateTo(${JSON.stringify(item.path)});return false">${escapeHtml(item.name)}</a></div></li>`;
+        html += `<li class="file-item"><div class="file-info"><span class="file-icon">&#x1F4C1;</span><a href="#" class="file-name folder" onclick="navigateTo(${JSON.stringify(item.path)});return false">${escapeHtml(item.name)}</a></div></li>`;
       });
       files.forEach(item => {
         const url = pageUrl(item.path);
@@ -160,8 +160,12 @@
 
     function getFileIcon(filename) {
       const ext = filename.includes('.') ? filename.split('.').pop().toLowerCase() : '';
-      const map = {jpg:'🖼️',jpeg:'🖼️',png:'🖼️',gif:'🖼️',webp:'🖼️',svg:'🖼️',mp4:'🎬',avi:'🎬',mov:'🎬',webm:'🎬',pdf:'📄',txt:'📝',md:'📝',html:'🌐',css:'🎨',js:'⚙️',json:'🔧',zip:'📦',rar:'📦',7z:'📦'};
-      return map[ext] || '📄';
+      const map = {
+        jpg:'\u{1F5BC}\uFE0F', jpeg:'\u{1F5BC}\uFE0F', png:'\u{1F5BC}\uFE0F', gif:'\u{1F5BC}\uFE0F', webp:'\u{1F5BC}\uFE0F', svg:'\u{1F5BC}\uFE0F',
+        mp4:'\u{1F3AC}', avi:'\u{1F3AC}', mov:'\u{1F3AC}', webm:'\u{1F3AC}', pdf:'\u{1F4C4}', txt:'\u{1F4DD}', md:'\u{1F4DD}',
+        html:'\u{1F310}', css:'\u{1F3A8}', js:'\u2699\uFE0F', json:'\u{1F527}', zip:'\u{1F4E6}', rar:'\u{1F4E6}', '7z':'\u{1F4E6}'
+      };
+      return map[ext] || '\u{1F4C4}';
     }
 
     async function copyToClipboard(text, button) {
@@ -237,7 +241,7 @@
 
       const button = $('uploadBtn');
       button.disabled = true;
-      $('uploadStatus').textContent = '正在上传……';
+      $('uploadStatus').textContent = '正在上传...';
       $('uploadStatus').className = 'status';
 
       try {
@@ -248,7 +252,7 @@
         });
         const result = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(result.error || `上传失败（${response.status}）`);
-        $('uploadStatus').textContent = '上传成功，正在刷新目录……';
+        $('uploadStatus').textContent = '上传成功，正在刷新目录...';
         await new Promise(resolve => setTimeout(resolve, 500));
         closeModal('uploadModal');
         await loadDirectory(currentPath);
