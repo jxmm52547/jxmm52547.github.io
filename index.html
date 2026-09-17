@@ -1,558 +1,210 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>文件导航器</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-            background: #f5f5f5;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-
-        .header {
-            background: #2c3e50;
-            color: white;
-            padding: 20px;
-        }
-
-        .header h1 {
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-
-        .breadcrumb {
-            font-size: 14px;
-            color: #ecf0f1;
-        }
-
-        .breadcrumb a {
-            color: #3498db;
-            text-decoration: none;
-        }
-
-        .breadcrumb a:hover {
-            text-decoration: underline;
-        }
-
-        .content {
-            padding: 20px;
-        }
-
-        .file-list {
-            list-style: none;
-        }
-
-        .file-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 16px;
-            border-bottom: 1px solid #e0e0e0;
-            transition: background 0.2s;
-        }
-
-        .file-item:hover {
-            background: #f8f9fa;
-        }
-
-        .file-item:last-child {
-            border-bottom: none;
-        }
-
-        .file-info {
-            display: flex;
-            align-items: center;
-            flex: 1;
-            min-width: 0;
-        }
-
-        .file-icon {
-            margin-right: 12px;
-            font-size: 20px;
-            flex-shrink: 0;
-        }
-
-        .file-name {
-            font-size: 15px;
-            color: #2c3e50;
-            text-decoration: none;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .file-name.folder {
-            color: #3498db;
-            font-weight: 500;
-        }
-
-        .file-name.folder:hover {
-            text-decoration: underline;
-        }
-
-        .copy-btn {
-            padding: 6px 16px;
-            background: #3498db;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 13px;
-            transition: background 0.2s;
-            flex-shrink: 0;
-        }
-
-        .copy-btn:hover {
-            background: #2980b9;
-        }
-
-        .copy-btn.copied {
-            background: #27ae60;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #7f8c8d;
-        }
-
-        .empty-state svg {
-            width: 64px;
-            height: 64px;
-            margin-bottom: 16px;
-            opacity: 0.5;
-        }
-
-        .config-btn {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 56px;
-            height: 56px;
-            background: #3498db;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            font-size: 24px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            transition: all 0.3s;
-            z-index: 1000;
-        }
-
-        .config-btn:hover {
-            background: #2980b9;
-            transform: scale(1.1);
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 800px;
-            max-height: 90vh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .modal-header {
-            padding: 20px;
-            background: #2c3e50;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-header h2 {
-            font-size: 20px;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 28px;
-            cursor: pointer;
-            padding: 0;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-body {
-            padding: 20px;
-            overflow-y: auto;
-        }
-
-        .input-group {
-            margin-bottom: 20px;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: #2c3e50;
-        }
-
-        .input-group textarea {
-            width: 100%;
-            min-height: 200px;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            resize: vertical;
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-
-        .help-text {
-            font-size: 13px;
-            color: #7f8c8d;
-            margin-top: 6px;
-        }
-
-        .modal-footer {
-            padding: 20px;
-            background: #f8f9fa;
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-
-        .btn {
-            padding: 10px 24px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s;
-        }
-
-        .btn-primary {
-            background: #3498db;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #2980b9;
-        }
-
-        .btn-secondary {
-            background: #95a5a6;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #7f8c8d;
-        }
-
-        .example {
-            background: #f8f9fa;
-            padding: 12px;
-            border-radius: 4px;
-            margin-top: 10px;
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-            white-space: pre;
-            overflow-x: auto;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文件导航器</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:#f5f7fb;color:#243447;padding:20px}
+    .container{max-width:1100px;margin:0 auto;background:#fff;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.08);overflow:hidden}
+    .header{background:#2c3e50;color:#fff;padding:22px 24px}
+    .header h1{font-size:24px;margin-bottom:10px}
+    .breadcrumb{font-size:14px;color:#dce6ed;word-break:break-all}
+    .breadcrumb a{color:#74c0fc;text-decoration:none}.breadcrumb a:hover{text-decoration:underline}
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap;padding:16px 20px;border-bottom:1px solid #eee;background:#fafbfc}
+    .toolbar .btn{flex:0 0 auto}
+    .content{padding:0 20px 20px}
+    .status{padding:14px 4px;color:#68737d;font-size:14px;min-height:46px}
+    .file-list{list-style:none;border:1px solid #e5e9ef;border-radius:8px;overflow:hidden}
+    .file-item{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 16px;border-bottom:1px solid #edf0f3;transition:background .2s}
+    .file-item:last-child{border-bottom:none}.file-item:hover{background:#f8fafc}
+    .file-info{display:flex;align-items:center;min-width:0;flex:1}.file-icon{font-size:20px;margin-right:12px;flex-shrink:0}
+    .file-name{font-size:15px;color:#2c3e50;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.file-name:hover{text-decoration:underline}.folder{color:#2980b9;font-weight:500}
+    .actions{display:flex;gap:7px;flex-shrink:0}.btn{border:0;border-radius:6px;padding:8px 13px;cursor:pointer;font-size:13px;transition:.2s}.btn:disabled{opacity:.55;cursor:not-allowed}
+    .btn-primary{background:#3498db;color:#fff}.btn-primary:hover{background:#2980b9}.btn-secondary{background:#eef1f4;color:#34495e}.btn-secondary:hover{background:#dde3e8}.btn-success{background:#27ae60;color:#fff}
+    .empty-state{text-align:center;padding:60px 20px;color:#7f8c8d}.error{color:#c0392b}
+    .config-btn{position:fixed;right:26px;bottom:26px;width:54px;height:54px;border:0;border-radius:50%;background:#3498db;color:#fff;font-size:22px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25);z-index:1000}.config-btn:hover{background:#2980b9}
+    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;align-items:center;justify-content:center;padding:20px}.modal.active{display:flex}
+    .modal-content{background:#fff;border-radius:10px;width:100%;max-width:620px;max-height:90vh;overflow:auto}.modal-header{padding:18px 20px;background:#2c3e50;color:#fff;display:flex;justify-content:space-between;align-items:center}.modal-header h2{font-size:19px}.close-btn{background:none;border:0;color:#fff;font-size:28px;cursor:pointer}
+    .modal-body{padding:20px}.input-group{margin-bottom:18px}.input-group label{display:block;margin-bottom:7px;font-weight:600;color:#2c3e50}.input-group input{width:100%;padding:10px;border:1px solid #d8dee6;border-radius:6px;font-size:14px}.help-text{font-size:12px;color:#7f8c8d;margin-top:6px;line-height:1.5}
+    .modal-footer{padding:16px 20px;background:#f8f9fa;display:flex;justify-content:flex-end;gap:10px}
+    .upload-box{border:2px dashed #cfd8e3;border-radius:8px;padding:22px;text-align:center;background:#fbfcfe}.upload-box input{margin:12px auto;display:block}.upload-info{font-size:13px;color:#68737d;line-height:1.6}
+    @media(max-width:640px){body{padding:8px}.header{padding:18px}.content{padding:0 10px 14px}.file-item{padding:12px 10px}.actions{gap:4px}.actions .btn{padding:7px 8px}.config-btn{right:16px;bottom:16px}}
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>文件导航器</h1>
-            <div class="breadcrumb" id="breadcrumb">
-                <a href="#" onclick="navigateTo(''); return false;">根目录</a>
-            </div>
-        </div>
-        <div class="content">
-            <ul class="file-list" id="fileList"></ul>
-        </div>
+  <div class="container">
+    <div class="header">
+      <h1>文件导航器</h1>
+      <div class="breadcrumb" id="breadcrumb"></div>
     </div>
-
-    <button class="config-btn" onclick="openModal()" title="快速配置">⚙️</button>
-
-    <div class="modal" id="configModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>快速配置文件列表</h2>
-                <button class="close-btn" onclick="closeModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="input-group">
-                    <label>当前路径 (可选，留空表示根目录)</label>
-                    <input type="text" id="currentPathInput" placeholder="例如: img 或 docs/pdf">
-                    <p class="help-text">如果是子目录，输入完整路径，如 img/photos</p>
-                </div>
-
-                <div class="input-group">
-                    <label>粘贴文件列表 (每行一个文件名)</label>
-                    <textarea id="fileListInput" placeholder="photo1.jpg
-photo2.jpg
-photo3.png
-subfolder/
-document.pdf"></textarea>
-                    <p class="help-text">文件夹名称以 / 结尾，例如: images/</p>
-                    
-                    <div class="example">示例格式:
-img/
-docs/
-photo1.jpg
-photo2.png
-README.md</div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal()">取消</button>
-                <button class="btn btn-primary" onclick="applyConfig()">应用配置</button>
-            </div>
-        </div>
+    <div class="toolbar">
+      <button class="btn btn-secondary" id="upBtn" onclick="goUp()">⬆️ 上一级</button>
+      <button class="btn btn-primary" onclick="loadDirectory(currentPath)">🔄 刷新</button>
+      <button class="btn btn-success" onclick="openUploadModal()">⬆️ 上传文件</button>
     </div>
+    <div class="content">
+      <div class="status" id="status">正在读取 GitHub 仓库……</div>
+      <ul class="file-list" id="fileList"></ul>
+    </div>
+  </div>
 
-    <script>
-        const baseUrl = window.location.origin;
-        let currentPath = '';
+  <button class="config-btn" onclick="openConfigModal()" title="配置上传接口">⚙️</button>
 
-        // 文件结构配置 - 请根据实际情况修改
-        const fileStructure = {
-            '': {
-                folders: ['img', 'docs', 'videos'],
-                files: ['index.html', 'README.md']
-            },
-            'img': {
-                folders: [],
-                files: ['photo1.jpg', 'photo2.jpg', 'photo3.png', 'logo.svg']
-            },
-            'docs': {
-                folders: ['pdf'],
-                files: ['document.txt', 'guide.md']
-            },
-            'docs/pdf': {
-                folders: [],
-                files: ['manual.pdf', 'report.pdf']
-            },
-            'videos': {
-                folders: [],
-                files: ['demo.mp4', 'tutorial.mp4']
-            }
-        };
+  <div class="modal" id="configModal">
+    <div class="modal-content">
+      <div class="modal-header"><h2>上传接口配置</h2><button class="close-btn" onclick="closeModal('configModal')">&times;</button></div>
+      <div class="modal-body">
+        <div class="input-group">
+          <label for="uploadApiInput">上传 API 地址</label>
+          <input id="uploadApiInput" type="url" placeholder="例如：https://你的-worker.workers.dev/upload">
+          <p class="help-text">GitHub Pages 本身不能接收文件并写入仓库，因此上传需要一个后端接口。地址仅保存在当前浏览器。</p>
+        </div>
+        <div class="input-group">
+          <label for="uploadKeyInput">上传密钥（可选）</label>
+          <input id="uploadKeyInput" type="password" placeholder="如果后端启用了 UPLOAD_KEY，请填写">
+          <p class="help-text">密钥仅保存在当前浏览器的会话中，不写入网页源码。</p>
+        </div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('configModal')">取消</button><button class="btn btn-primary" onclick="saveConfig()">保存</button></div>
+    </div>
+  </div>
 
-        function navigateTo(path) {
-            currentPath = path;
-            updateBreadcrumb();
-            renderFileList();
-        }
+  <div class="modal" id="uploadModal">
+    <div class="modal-content">
+      <div class="modal-header"><h2>上传文件</h2><button class="close-btn" onclick="closeModal('uploadModal')">&times;</button></div>
+      <div class="modal-body">
+        <div class="input-group">
+          <label>目标目录</label>
+          <input id="uploadPathInput" type="text" readonly>
+        </div>
+        <div class="upload-box">
+          <div class="upload-info">选择文件后，文件会上传到当前 GitHub 仓库目录。<br>建议单个文件不要超过 50 MB。</div>
+          <input id="fileInput" type="file">
+          <button class="btn btn-primary" id="uploadBtn" onclick="uploadFile()">开始上传</button>
+        </div>
+        <div class="status" id="uploadStatus"></div>
+      </div>
+    </div>
+  </div>
 
-        function updateBreadcrumb() {
-            const breadcrumb = document.getElementById('breadcrumb');
-            const parts = currentPath.split('/').filter(p => p);
-            
-            let html = '<a href="#" onclick="navigateTo(\'\'); return false;">根目录</a>';
-            let pathSoFar = '';
-            
-            parts.forEach((part, index) => {
-                pathSoFar += (pathSoFar ? '/' : '') + part;
-                const currentPathSoFar = pathSoFar;
-                html += ' / <a href="#" onclick="navigateTo(\'' + currentPathSoFar + '\'); return false;">' + part + '</a>';
-            });
-            
-            breadcrumb.innerHTML = html;
-        }
+  <script>
+    const OWNER = 'jxmm52547';
+    const REPO = 'jxmm52547.github.io';
+    const BRANCH = 'main';
+    const API_ROOT = `https://api.github.com/repos/${OWNER}/${REPO}/contents`;
+    const baseUrl = window.location.origin;
+    let currentPath = '';
+    let uploadApi = sessionStorage.getItem('uploadApi') || '';
+    let uploadKey = sessionStorage.getItem('uploadKey') || '';
 
-        function renderFileList() {
-            const fileList = document.getElementById('fileList');
-            const data = fileStructure[currentPath];
-            
-            if (!data || (data.folders.length === 0 && data.files.length === 0)) {
-                fileList.innerHTML = `
-                    <div class="empty-state">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
-                        </svg>
-                        <p>此目录为空</p>
-                    </div>
-                `;
-                return;
-            }
+    const $ = id => document.getElementById(id);
+    const encodePath = path => path.split('/').filter(Boolean).map(encodeURIComponent).join('/');
+    const pageUrl = path => `${baseUrl}/${encodePath(path)}`;
+    const escapeHtml = value => String(value).replace(/[&<>\"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
 
-            let html = '';
+    function updateBreadcrumb(){
+      const parts = currentPath.split('/').filter(Boolean);
+      let html = `<a href="#" onclick="navigateTo('');return false">根目录</a>`;
+      let path = '';
+      parts.forEach(part => { path += (path ? '/' : '') + part; html += ` / <a href="#" onclick="navigateTo(${JSON.stringify(path)});return false">${escapeHtml(part)}</a>`; });
+      $('breadcrumb').innerHTML = html;
+      $('upBtn').disabled = !currentPath;
+    }
 
-            // 渲染文件夹
-            data.folders.forEach(folder => {
-                const folderPath = currentPath ? `${currentPath}/${folder}` : folder;
-                html += `
-                    <li class="file-item">
-                        <div class="file-info">
-                            <span class="file-icon">📁</span>
-                            <a href="#" class="file-name folder" onclick="navigateTo('${folderPath}'); return false;">${folder}</a>
-                        </div>
-                    </li>
-                `;
-            });
+    async function loadDirectory(path=''){
+      currentPath = path.replace(/^\/+|\/+$/g,'');
+      updateBreadcrumb();
+      $('status').textContent = '正在读取 GitHub 仓库……';
+      $('status').className = 'status';
+      $('fileList').innerHTML = '';
+      try{
+        const url = `${API_ROOT}${currentPath ? '/' + encodePath(currentPath) : ''}?ref=${encodeURIComponent(BRANCH)}`;
+        const response = await fetch(url, {headers:{Accept:'application/vnd.github+json'}});
+        if(!response.ok) throw new Error(`GitHub API ${response.status}`);
+        const data = await response.json();
+        if(!Array.isArray(data)) throw new Error('该路径不是目录');
+        renderItems(data);
+        $('status').textContent = `${data.length} 个项目 · ${currentPath || '根目录'}`;
+      }catch(error){
+        $('status').textContent = `读取失败：${error.message}`;
+        $('status').className = 'status error';
+        $('fileList').innerHTML = '<li class="empty-state">无法读取目录，请检查仓库是否公开或稍后重试。</li>';
+      }
+    }
 
-            // 渲染文件
-            data.files.forEach(file => {
-                const filePath = currentPath ? `${currentPath}/${file}` : file;
-                const fullUrl = `${baseUrl}/${filePath}`;
-                const icon = getFileIcon(file);
-                
-                html += `
-                    <li class="file-item">
-                        <div class="file-info">
-                            <span class="file-icon">${icon}</span>
-                            <a href="${fullUrl}" class="file-name" target="_blank">${file}</a>
-                        </div>
-                        <button class="copy-btn" onclick="copyToClipboard('${fullUrl}', this)">复制地址</button>
-                    </li>
-                `;
-            });
+    function renderItems(items){
+      const folders = items.filter(x=>x.type==='dir').sort((a,b)=>a.name.localeCompare(b.name,'zh-CN'));
+      const files = items.filter(x=>x.type==='file').sort((a,b)=>a.name.localeCompare(b.name,'zh-CN'));
+      if(!items.length){$('fileList').innerHTML='<li class="empty-state">此目录为空</li>';return;}
+      let html='';
+      folders.forEach(item=>{
+        html += `<li class="file-item"><div class="file-info"><span class="file-icon">📁</span><a href="#" class="file-name folder" onclick="navigateTo(${JSON.stringify(item.path)});return false">${escapeHtml(item.name)}</a></div></li>`;
+      });
+      files.forEach(item=>{
+        const url=pageUrl(item.path), icon=getFileIcon(item.name);
+        html += `<li class="file-item"><div class="file-info"><span class="file-icon">${icon}</span><a href="${escapeHtml(url)}" class="file-name" target="_blank" rel="noopener">${escapeHtml(item.name)}</a></div><div class="actions"><a class="btn btn-secondary" href="${escapeHtml(url)}" download>下载</a><button class="btn btn-primary" onclick="copyToClipboard(${JSON.stringify(url)},this)">复制地址</button></div></li>`;
+      });
+      $('fileList').innerHTML=html;
+    }
 
-            fileList.innerHTML = html;
-        }
+    function getFileIcon(filename){
+      const ext=filename.includes('.')?filename.split('.').pop().toLowerCase():'';
+      const map={jpg:'🖼️',jpeg:'🖼️',png:'🖼️',gif:'🖼️',webp:'🖼️',svg:'🖼️',mp4:'🎬',avi:'🎬',mov:'🎬',webm:'🎬',pdf:'📄',txt:'📝',md:'📝',html:'🌐',css:'🎨',js:'⚙️',json:'🔧',zip:'📦',rar:'📦',7z:'📦'};
+      return map[ext]||'📄';
+    }
 
-        function getFileIcon(filename) {
-            const ext = filename.split('.').pop().toLowerCase();
-            const iconMap = {
-                'jpg': '🖼️', 'jpeg': '🖼️', 'png': '🖼️', 'gif': '🖼️', 'svg': '🖼️',
-                'mp4': '🎬', 'avi': '🎬', 'mov': '🎬',
-                'pdf': '📄',
-                'txt': '📝', 'md': '📝',
-                'html': '🌐', 'css': '🎨', 'js': '⚙️'
-            };
-            return iconMap[ext] || '📄';
-        }
+    async function copyToClipboard(text,button){
+      try{
+        if(navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(text);
+        else {const area=document.createElement('textarea');area.value=text;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.focus();area.select();document.execCommand('copy');area.remove();}
+        const old=button.textContent;button.textContent='已复制';button.classList.add('btn-success');setTimeout(()=>{button.textContent=old;button.classList.remove('btn-success')},1800);
+      }catch(e){alert('复制失败，请手动复制：\n'+text)}
+    }
 
-        function copyToClipboard(text, button) {
-            navigator.clipboard.writeText(text).then(() => {
-                const originalText = button.textContent;
-                button.textContent = '已复制!';
-                button.classList.add('copied');
-                
-                setTimeout(() => {
-                    button.textContent = originalText;
-                    button.classList.remove('copied');
-                }, 2000);
-            }).catch(err => {
-                alert('复制失败,请手动复制: ' + text);
-            });
-        }
+    function navigateTo(path){loadDirectory(path)}
+    function goUp(){if(!currentPath)return;const parts=currentPath.split('/');parts.pop();loadDirectory(parts.join('/'))}
 
-        function openModal() {
-            document.getElementById('configModal').classList.add('active');
-        }
+    function openConfigModal(){
+      $('uploadApiInput').value=uploadApi;
+      $('uploadKeyInput').value=uploadKey;
+      $('configModal').classList.add('active');
+    }
+    function saveConfig(){
+      uploadApi=$('uploadApiInput').value.trim().replace(/\/$/,'');
+      uploadKey=$('uploadKeyInput').value;
+      if(uploadApi)sessionStorage.setItem('uploadApi',uploadApi);else sessionStorage.removeItem('uploadApi');
+      if(uploadKey)sessionStorage.setItem('uploadKey',uploadKey);else sessionStorage.removeItem('uploadKey');
+      closeModal('configModal');
+      alert(uploadApi?'上传接口已保存。':'已清除上传接口。');
+    }
+    function openUploadModal(){
+      if(!uploadApi){alert('请先点击右下角 ⚙️ 配置上传 API。');openConfigModal();return;}
+      $('uploadPathInput').value=currentPath||'根目录';$('fileInput').value='';$('uploadStatus').textContent='';$('uploadModal').classList.add('active');
+    }
+    function closeModal(id){$(id).classList.remove('active')}
 
-        function closeModal() {
-            document.getElementById('configModal').classList.remove('active');
-        }
+    async function uploadFile(){
+      const file=$('fileInput').files[0];
+      if(!file){alert('请选择文件');return;}
+      if(file.size>50*1024*1024){alert('单个文件超过 50 MB，已阻止上传。');return;}
+      const targetPath=currentPath?`${currentPath}/${file.name}`:file.name;
+      const form=new FormData();form.append('file',file);form.append('path',targetPath);form.append('branch',BRANCH);
+      const button=$('uploadBtn');button.disabled=true;$('uploadStatus').textContent='正在上传……';
+      try{
+        const headers={};if(uploadKey)headers.Authorization=`Bearer ${uploadKey}`;
+        const response=await fetch(uploadApi,{method:'POST',headers,body:form});
+        const result=await response.json().catch(()=>({}));
+        if(!response.ok)throw new Error(result.error||`上传失败（${response.status}）`);
+        $('uploadStatus').textContent='上传成功，正在刷新目录……';
+        await new Promise(r=>setTimeout(r,800));closeModal('uploadModal');await loadDirectory(currentPath);
+      }catch(error){$('uploadStatus').textContent='上传失败：'+error.message;$('uploadStatus').className='status error'}
+      finally{button.disabled=false}
+    }
 
-        function applyConfig() {
-            const pathInput = document.getElementById('currentPathInput').value.trim();
-            const fileListInput = document.getElementById('fileListInput').value.trim();
-            
-            if (!fileListInput) {
-                alert('请输入文件列表！');
-                return;
-            }
-
-            const lines = fileListInput.split('\n').map(line => line.trim()).filter(line => line);
-            const folders = [];
-            const files = [];
-
-            lines.forEach(line => {
-                if (line.endsWith('/')) {
-                    folders.push(line.slice(0, -1));
-                } else {
-                    files.push(line);
-                }
-            });
-
-            fileStructure[pathInput] = { folders, files };
-
-            // 如果配置的是子目录，确保父目录路径存在
-            if (pathInput) {
-                const parts = pathInput.split('/');
-                let currentCheck = '';
-                
-                for (let i = 0; i < parts.length; i++) {
-                    const parentPath = parts.slice(0, i).join('/');
-                    const folderName = parts[i];
-                    
-                    if (!fileStructure[parentPath]) {
-                        fileStructure[parentPath] = { folders: [], files: [] };
-                    }
-                    
-                    if (!fileStructure[parentPath].folders.includes(folderName)) {
-                        fileStructure[parentPath].folders.push(folderName);
-                    }
-                }
-            }
-
-            closeModal();
-            navigateTo(pathInput);
-            
-            document.getElementById('currentPathInput').value = '';
-            document.getElementById('fileListInput').value = '';
-            
-            alert('配置已应用！');
-        }
-
-        // 点击模态框外部关闭
-        document.getElementById('configModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
-            }
-        });
-
-        // 初始化
-        navigateTo('');
-    </script>
+    window.addEventListener('click',e=>{if(e.target.classList.contains('modal'))e.target.classList.remove('active')});
+    loadDirectory('');
+  </script>
 </body>
 </html>
