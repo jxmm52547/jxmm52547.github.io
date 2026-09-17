@@ -1,0 +1,9 @@
+name = "jxmm52547-file-upload"
+main = "worker.js"
+compatibility_date = "2026-09-17"
+
+# 不要把 GITHUB_TOKEN / UPLOAD_KEY 写进这个文件。
+# 使用 Cloudflare Dashboard 的 Variables and Secrets，或 wrangler secret put 配置。
+
+[vars]
+ALLOWED_ORIGIN = "https://jxmm52547.github.io"
